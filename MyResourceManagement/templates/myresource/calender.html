@@ -1,0 +1,266 @@
+{% extends 'myresource/base.html' %}
+{% block title %}
+    MyResource后台管理系统
+{% endblock %}
+{% block style %}
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Open Sans, Helvetica Neue, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        #calendar {
+            max-width: 100%;
+            margin: 40px auto;
+            padding: 0 10px;
+        }
+
+    </style>
+{% endblock %}
+{% block main %}
+    <div id='calendar'></div>
+    <div class="container">
+        <!-- 模态框（Modal） -->
+        <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog"
+             aria-labelledby="myModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content ">
+                    <div class="modal-header">
+                        <div class="card-title modal-title" id="myModalLabel">
+                            添加日程
+                        </div>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                            &times;
+                        </button>
+                    </div>
+                    <form>
+                        <div class="modal-body">
+                            <div class="form-group ">
+                                <label for="event_title">主题</label><input type="text" class="form-control"
+                                                                          id="event_title" placeholder="主题"
+                                                                          name="event_title">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_special">是否为重要事项</label>
+                                <select class="form-control" id="event_special" name="event_special">
+                                    <option value="0" selected>否</option>
+                                    <option value="1">是</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="time_start">起始时间</label>
+                                <input type="datetime-local" class="form-control" id="time_start" placeholder="起始时间"
+                                       name="time_start">
+                            </div>
+                            <div class="form-group">
+                                <label for="time_end">终止时间</label>
+                                <input type="datetime-local" class="form-control" id="time_end" placeholder="终止时间"
+                                       name="time_end">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_color">颜色</label>
+                                <input type="color" class="form-control-static form" id="event_color" placeholder="颜色"
+                                       value="#716ACA" name="event_color">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_url">链接</label>
+                                <input type="url" class="form-control" id="event_url" placeholder="链接"
+                                       name="event_url">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_imgs">图片</label>
+                                <input type="file" class="form-control-file" id="event_imgs" name="event_imgs">
+                            </div>
+                            <div class="form-group">
+                                <label for="event_details">详情</label>
+                                <textarea class="form-control" id="event_details" rows="5" placeholder="详情"
+                                          name="event_details">
+										</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="button" class="btn btn-success" value="提交">
+                            <input type="button" class="btn btn-danger" data-dismiss="modal" value="关闭">
+                        </div>
+                    </form>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal -->
+        </div>
+    </div>
+
+{% endblock %}
+{% block script %}
+    <script src='/static/fullcalender/packages/core/locales-all.js'></script>
+    <link href='/static/fullcalender/packages/core/main.css' rel='stylesheet'/>
+    <link href='/static/fullcalender/packages/daygrid/main.css' rel='stylesheet'/>
+    <link href='/static/fullcalender/packages/timegrid/main.css' rel='stylesheet'/>
+    <link href='/static/fullcalender/packages/list/main.css' rel='stylesheet'/>
+    <script src='/static/fullcalender/packages/core/main.js'></script>
+    <script src='/static/fullcalender/packages/interaction/main.js'></script>
+    <script src='/static/fullcalender/packages/daygrid/main.js'></script>
+    <script src='/static/fullcalender/packages/timegrid/main.js'></script>
+    <script src='/static/fullcalender/packages/list/main.js'></script>
+    <script src="/static/ckeditor/ckeditor/ckeditor.js"></script>
+    {#    <script src="https://cdn.bootcss.com/moment.js/2.18.1/moment-with-locales.min.js"></script>#}
+    {#    <link href="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css"#}
+    {#          rel="stylesheet">#}
+    {#    <script src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>#}
+
+    <script type="text/javascript">
+        var basePath = "${pageContext.request.contextPath}";
+    </script>
+    <script>
+        //获取当前时间，格式YYYY-MM-DD
+        function getNowFormatDate(date) {
+            if (date === undefined) {
+                date = new Date();
+            }
+            var seperator1 = "-";
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var strDate = date.getDate();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            return year + seperator1 + month + seperator1 + strDate;
+        }
+
+        currentdata = getNowFormatDate();
+        console.log(currentdata);
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                timeZone: 'Asia/Shanghai',
+                plugins: ['dayGrid', 'timeGrid', 'list', 'interaction'],
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                defaultDate: currentdata,
+                locale: 'zh-cn',
+                buttonIcons: false, // show the prev/next text
+                weekNumbers: false,
+                editable: true,
+                selectable: true,
+                unselectAuto: true,
+                selectMirror: true,
+                eventLimit: true, // allow "more" link when too many events
+                navLinks: true, // can click day/week names to navigate views
+                events: [{
+                    id: 1,
+                    title: '这是一个all-day数据',
+                    allDay: true,
+                    start: '2020-02-03'
+                },
+                    {
+                        id: 2,
+                        title: '开始时间为12PM',
+                        start: '2020-02-03 12:00',
+                        editable: true,
+                    },
+                    {
+                        id: 3,
+                        title: '给一点颜色',
+                        start: '2020-02-03',
+                        color: 'red',
+                        editable: true,
+                    },
+                    {
+                        id: 4,
+                        title: '使用className:done',
+                        start: '2020-02-02 09:00',
+                        end: '2020-02-03 18:00',
+                        color: '#ff2118',
+                        className: 'done',
+                        editable: true,
+                    },
+                    {
+                        id: 5,
+                        title: '使用className:doing',
+                        start: '2020-02-03 09:00',
+                        end: '2020-02-04 18:00',
+                        color: 'green',
+                        className: 'doing',
+                        editable: true,
+                    },
+                    {
+                        id: 6,
+                        title: '使用URL和字体颜色',
+                        start: '2020-02-03',
+                        color: 'pink',
+                        url: 'http://flovel.xyz',
+                        className: 'doing',
+                        textColor: 'black',
+                        editable: true,
+                    },
+                    {
+                        id: 7,
+                        title: '使用backgroundColor和borderColor',
+                        start: '2020-02-03 09:00',
+                        end: '2020-02-03 18:00',
+                        backgroundColor: 'gray',
+                        borderColor: 'red',
+                        className: 'done',
+                        editable: true,
+                    }
+                ],
+                dateClick: function (info) {
+                    {#console.log(info.date.toISOString());#}
+                    {#console.log(info.dateStr);#}
+                    {#console.log(info.date);#}
+                    {#console.log(info.view);#}
+                    {#console.log(info.resource);#}
+                    {#console.log(info.allDay);#}
+                    {#console.log(info.dayEl);#}
+                    {#console.log(info.jsEvent);#}
+                    {#console.log(moment(info.date.toISOString().format("YYYY-MM-DD HH:mm:ss")));#}
+                    {#console.log(info.date.toISOString().slice(0,23));#}
+                    {#$("#time_end,#time_start").val(moment(info.date.toISOString().format("YYYY-MM-DDTHH:mm:ss")));#}
+                    {#$("#time_end,#time_start").val(info.dateStr);#}
+                    {#console.log($("#event_special").attr("checked"));#}
+                    $("#time_end,#time_start").val(info.date.toISOString().slice(0, 23));
+                    $("#myModal").modal("show")
+                },
+            });
+            calendar.render();
+        })
+    </script>
+    <script>
+        CKEDITOR.replace('event_details', {
+            uiColor: "#716ACA",
+        });
+    </script>
+    {#    <script type="text/javascript">#}
+    {#        $('#myModal').on('show.bs.modal', function () {#}
+    {#            alert("显示模态框");#}
+    {#        });#}
+    {##}
+    {#        $('#myModal').on('shown.bs.modal', function () {#}
+    {#            alert("完全显示模态框");#}
+    {#        });#}
+    {##}
+    {#        $('#myModal').on('hide.bs.modal', function () {#}
+    {#            alert("隐藏模态框");#}
+    {#        });#}
+    {##}
+    {#        $('#myModal').on('hidden.bs.modal', function () {#}
+    {#            alert("完全隐藏模态框");#}
+    {#        });#}
+    {#    </script>#}
+    {#    <script>#}
+    {#        $(function () {#}
+    {#            $("#time_start,#time_end").datetimepicker({#}
+    {#                format: 'YYYY-MM-DD hh:mm',#}
+    {#                locale: moment.locale('zh-cn')#}
+    {#            });#}
+    {#        });#}
+    {#    </script>#}
+
+{% endblock %}
