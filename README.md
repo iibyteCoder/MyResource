@@ -1,0 +1,2 @@
+# MyResource
+management
