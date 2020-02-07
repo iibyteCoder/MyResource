@@ -1,0 +1,404 @@
+{% load staticfiles %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>User Indext</title>
+    <link rel="shortcut  icon" type="image/x-icon" href="{% static 'icon/favicon.ico' %}" media="screen"/>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datetimepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'icon/font/css/open-iconic-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fullcalendar.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/fullcalendar.print.min.css' %}" media='print'/>
+    <script type="text/javascript" src="{% static 'js/moment.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/popper.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/fullcalendar.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datetimepicker.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+</head>
+<body>
+<div class="myPanel">
+    <div id='calendar'></div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="selectModal" tabindex="-1" role="dialog" aria-labelledby="selectLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="selectLabel">{{ username }}的日程安排</h5>
+                <input id="eID" class="close" type="button" value="ID"/>
+            </div>
+            <div class="modal-body">
+                {% csrf_token %}
+                <input id="eTitle" class="form-control" type="text" placeholder="Title"/>
+                <div class="input-append date form_datetime1" data-date="{{ nowtime }}"
+                     data-date-format="yyyy-mm-dd HH:ii:ss">
+                    <input id="eStart" class="form-control" type="text" align="left" readonly/>
+                    <span class="add-on"><i class="icon-remove"></i></span>
+                    <span class="add-on"><i class="icon-th"></i></span>
+                </div>
+                <div class="input-append date form_datetime2" data-date="{{ nowtime }}"
+                     data-date-format="yyyy-mm-dd HH:ii:ss">
+                    <input id="eEnd" class="form-control" type="text" align="left" readonly/>
+                    <span class="add-on"><i class="icon-remove"></i></span>
+                    <span class="add-on"><i class="icon-th"></i></span>
+                </div>
+                <select id="eCss" class="form-control" οnchange="setColor(this)">
+                    <option class="border-primary bg-white text-primary" value="border-primary bg-white text-primary">
+                        蓝字-白底
+                    </option>
+                    <option class="border-success bg-white text-success" value="border-success bg-white text-success">
+                        绿字-白底
+                    </option>
+                    <option class="border-danger bg-white text-danger" value="border-danger bg-white text-danger">
+                        红字-白底
+                    </option>
+                    <option class="border-warning bg-white text-warning" value="border-warning bg-white text-warning">
+                        黄-白底
+                    </option>
+                    <option class="border-info bg-white text-info" value="border-info bg-white text-info">青字-白底</option>
+                    <option class="bg-primary text-dark" value="bg-primary text-dark">黑字-蓝底</option>
+                    <option class="bg-secondary text-dark" value="bg-secondary text-dark">黑字-灰底</option>
+                    <option class="bg-success text-dark" value="bg-success text-dark">黑字-绿底</option>
+                    <option class="bg-danger text-dark" value="bg-danger text-dark">黑字-红底</option>
+                    <option class="bg-warning text-dark" value="bg-warning text-dark">黑字-黄底</option>
+                    <option class="bg-info text-dark" value="bg-info text-dark">黑字-青底</option>
+                    <option class="bg-primary text-danger" value="bg-primary text-danger">红字-蓝底</option>
+                    <option class="bg-primary text-warning" value="bg-primary text-warning">黄字-蓝底</option>
+                    <option class="bg-primary text-info" value="bg-primary text-info">青字-蓝底</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button id="delBtn" type="button" class="btn btn-danger" οnclick="delEvent()">删除(Delete)</button>
+                <button id="addBtn" type="button" class="btn btn-primary" οnclick="updateEvent()">更新(Update)</button>
+                <button id="addBtn" type="button" class="btn btn-primary" οnclick="addEvent()">添加(Add)</button>
+                <button id="closeBtn" type="button" class="btn btn-secondary" data-dismiss="modal">退出(Exist)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+<style>
+    .myPanel {
+        width: 100%;
+        height: 100%;
+    }
+
+    #calendar {
+        width: 100%;
+        height: 100%;
+        float: center;
+    }
+</style>
+<script>
+    //CSRF Setup for Ajax
+    var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+
+    //设定Ajax发送前头部加入csrf键值
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+
+    //页面DOM加载完成时执行一下脚本
+    $(document).ready(function () {
+        console.log('loading.....');
+        //添加第一个bootstrap的日期时间输入插件datetimepicker
+        $('.form_datetime1').datetimepicker({
+            startDate: "{{ nowtime }}",
+            weekStart: 1,
+            minuteStep: 1,
+            format: "yyyy-mm-dd HH:ii",
+            showMeridian: true,
+            autoclose: true,
+            todayHighlight: true,
+            todayBtn: true,
+            keyboardNavigation: true
+        });
+
+        $('.form_datetime2').datetimepicker({
+            startDate: "{{ nowtime }}",
+            weekStart: 1,
+            minuteStep: 1,
+            format: "yyyy-mm-dd HH:ii",
+            showMeridian: true,
+            autoclose: true,
+            todayHighlight: true,
+            todayBtn: true,
+            keyboardNavigation: true
+        });
+        //添加日历界面，设定fullcallendar参数
+        $('#calendar').fullCalendar({
+            height: 650,
+            handleWindowResize: true,
+            defaultView: 'month',
+            firstDay: 1,
+            fixedWeekCount: true,
+            navLinks: true,
+            weekMode: 'liquid',
+            weekNumbers: true,
+            weekNumbersWithinDays: true,
+            weekNumberCalculation: 'ISO',
+            businessHours: true,
+            defaultEventMinutes: 60,
+            selectable: true,
+            selectHelper: true,
+            editable: true,
+            displayEventTime: true,
+            displayEventEnd: true,
+
+            slotDuration: '00:15:00',
+            scrollTime: '6:00:00',
+            eventLimit: true,
+            views: {},
+
+            customButtons: {
+                addBtn: {
+                    text: '+',
+                    click: function () {
+                        $('#selectModal').modal('toggle');
+                    },
+                }
+            },
+
+            header: {
+                left: 'prevYear,prev',
+                center: 'title',
+                right: 'next,nextYear today,agendaWeek,month,agenda,listMonth,addBtn'
+            },
+            //添加日历初始化event的动态数据源
+            eventSources: [
+                {
+                    events: function (tart, end, timezone, callback) {
+                        $.ajax({
+                            url: "{% url 'ajax_get_event' %}", //代入urls.py中路由器条目name="ajax_get_event"的url
+                            type: 'get',
+                            success: function (data) {
+                                var events = data.events;
+                                console.log(events);
+                                callback(events);
+                            }
+                        });
+                    },
+                    editable: false,
+                },
+                //自定义的静态event数据
+                {
+                    events: [
+                        {
+                            title: 'other resource',
+                            start: '2018-12-18',
+                            className: 'text-primary bg-white'
+                        }
+                    ],
+                    editable: true
+                }
+            ],
+
+            eventClick: function (event, view) {
+                if (event.start != null) {
+                    $('#eStart').val(event.start._i);
+                } else {
+                    $('#eStart').val("");
+                }
+                if (event.end != null) {
+                    $('#eEnd').val(event.end._i);
+                } else {
+                    $('#eEnd').val("");
+                }
+                $('#eID').val(event.id);
+                $('#eTitle').val(event.title);
+                $('#eCss').val(event.css);
+                $('#selectModal').modal('toggle');
+            },
+
+            eventDrop: function (event, delta, revertFunc) {
+                event.start = delta;
+                event.end = delta;
+                $('#calendar').fullCalendar('renderEvent', event);
+            }
+        });
+
+    });
+
+    //添加event
+    function addEvent() {
+        console.log('adding.........')
+        var title = $(eTitle).val();
+        var start = $(eStart).val();
+        var end = $(eEnd).val();
+        var css = $(eCss).val();
+        console.log(css);
+        $.ajax({
+            url: "{% url 'ajax_add_event' %}",
+            type: 'post',
+            data: {
+                'title': title,
+                'start': start,
+                'end': end,
+                'css': css,
+            },
+            success: function (data) {
+                console.log(data);
+                $('#calendar').fullCalendar('refetchEvents');
+                $('#eTitle').val("");
+                $('#eCss').val("")
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    }
+
+    //删除event
+    function delEvent() {
+        console.log('del.........')
+        var get_id = $('#eID').val();
+        console.log(get_id);
+        $.ajax({
+            url: "{% url 'ajax_del_event' %}",
+            type: 'post',
+            data: {
+                'id': get_id,
+            },
+            success: function (data) {
+                console.log(data);
+                $('#calendar').fullCalendar('refetchEvents');
+                $('#selectModal').modal('toggle');
+                $('#eID').val("");
+                $('#eTitle').val("");
+                $(eStart).val("");
+                $(eEnd).val("");
+                $('#eCss').val("");
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    }
+
+    //更新event
+    function updateEvent() {
+        console.log('update.........')
+        var id = $('#eID').val();
+        var title = $(eTitle).val();
+        var start = $(eStart).val();
+        var end = $(eEnd).val();
+        var css = $(eCss).val();
+        $.ajax({
+            url: "{% url 'ajax_upd_event' %}",
+            type: 'post',
+            data: {
+                'id': id,
+                'title': title,
+                'start': start,
+                'end': end,
+                'css': css,
+            },
+            success: function (data) {
+                console.log(data);
+                $('#calendar').fullCalendar('refetchEvents');
+                $('#selectModal').modal('hide');
+                $(eStart).val("");
+                $(eEnd).val("");
+                $('#eID').val("");
+                $('#eTitle').val("");
+                $('#eCss').val("");
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    }
+
+    //获取当前月份
+    function getMonth() {
+        $.ajax({
+            url: "{% url 'ajax_month' %}",
+            type: 'get',
+            success: function (data) {
+                console.log(data.month);
+                $("#myMonth").html(data.month);
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    }
+
+    function setColor(self) {
+        self.style.className = self.value;
+    }
+</script>
+<body>
+</html>
+events: [{
+                    id: 1,
+                    title: '这是一个all-day数据',
+                    allDay: true,
+                    start: '2020-02-03'
+                },
+                    {
+                        id: 2,
+                        title: '开始时间为12PM',
+                        start: '2020-02-03 12:00',
+                        editable: true,
+                    },
+                    {
+                        id: 3,
+                        title: '给一点颜色',
+                        start: '2020-02-03',
+                        color: 'red',
+                        editable: true,
+                    },
+                    {
+                        id: 4,
+                        title: '使用className:done',
+                        start: '2020-02-02 09:00',
+                        end: '2020-02-03 18:00',
+                        color: '#ff2118',
+                        className: 'done',
+                        editable: true,
+                    },
+                    {
+                        id: 5,
+                        title: '使用className:doing',
+                        start: '2020-02-03 09:00',
+                        end: '2020-02-04 18:00',
+                        color: 'green',
+                        className: 'doing',
+                        editable: true,
+                    },
+                    {
+                        id: 6,
+                        title: '使用URL和字体颜色',
+                        start: '2020-02-03',
+                        color: 'pink',
+                        url: 'http://flovel.xyz',
+                        className: 'doing',
+                        textColor: 'black',
+                        editable: true,
+                    },
+                    {
+                        id: 7,
+                        title: '使用backgroundColor和borderColor',
+                        start: '2020-02-03 09:00',
+                        end: '2020-02-03 18:00',
+                        backgroundColor: 'gray',
+                        borderColor: 'red',
+                        className: 'done',
+                        editable: true,
+                    }
+                ]

@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
@@ -18,7 +19,6 @@ def pwd_set(pwd):
 def check_login(func):
     def inner(request, *args, **kwargs):
         # 把当前访问的网址拿到
-        url = request.get_full_path()
         login_user = request.session.get('username')
         login_status = request.session.get('login_status')
         login_cookies_verification = request.COOKIES.get('username')
@@ -76,21 +76,19 @@ def registry(request):
         'status': 'false'
     }
     if request.method == 'POST':
-        registryvalidator = RegistryValid(request.POST)
-        if registryvalidator.is_valid():
-            valid_data = registryvalidator.cleaned_data
-            username = valid_data.get('username')
-            password = valid_data.get('confirmpassword')
-            email = valid_data.get('email')
-            password = pwd_set(password)
+        valid_data = request.POST
+        username = valid_data.get('username')
+        password = valid_data.get('confirmpassword')
+        email = valid_data.get('email')
+        password = pwd_set(password)
 
-            user = Users()
-            user.username = username
-            user.email = email
-            user.password = password
-            user.save()
-            data['code'] = '200'
-            data['status'] = 'true'
+        user = Users()
+        user.username = username
+        user.email = email
+        user.password = password
+        user.save()
+        data['code'] = '200'
+        data['status'] = 'true'
     return JsonResponse(data)
 
 
@@ -110,7 +108,24 @@ def base(request):
 
 @check_login
 def calender(request):
-    return render(request, 'myresource/calender.html')
+    result = {
+            "code": "400",
+            "version": "v1.0",
+            "data": [],
+        }
+    method = request.method
+    username = request.COOKIES.get('username')
+    user = Users.objects.filter(username=username).first()
+    u_id = user.id
+    event_list = DailyRoutine.objects.filter(user_id=u_id)
+    for i in event_list:
+        event_obj = {'id': i.id, 'title': i.title, 'start': i.time_start, 'end': i.time_end,
+                     'backgroundColor': i.event_color, 'url': i.event_url, 'event_imgs': i.event_imgs,
+                     'event_details': i.event_details, 'editable': i.event_editable}
+        result['data'].append(event_obj)
+    result["data"].append(method)
+    result["code"] = "200"
+    return render(request, 'myresource/calender.html',result)
 
 
 class ResourceApi(View):
@@ -122,7 +137,6 @@ class ResourceApi(View):
             "data": [],
         }
 
-    @check_login
     def get(self, request):
         """
         查询event
@@ -130,20 +144,23 @@ class ResourceApi(View):
         :return: json数据
         """
         method = request.method
-        username = request.COOKIES.get
+        username = request.COOKIES.get('username')
         user = Users.objects.filter(username=username).first()
         u_id = user.id
         event_list = DailyRoutine.objects.filter(user_id=u_id)
+        a = event_list[0].time_start
+        print(a)
         for i in event_list:
+            print(i.time_end)
+            print(i.time_start)
             event_obj = {'id': i.id, 'title': i.title, 'start': i.time_start, 'end': i.time_end,
-                         'backgroundColor': i.event_color, 'url': i.event_url, 'event_imgs': i.event_imgs,
+                         'backgroundColor': i.event_color, 'url': i.event_url, 'event_imgs': str(i.event_imgs),
                          'event_details': i.event_details, 'editable': i.event_editable}
             self.result['data'].append(event_obj)
         self.result["data"].append(method)
         self.result["code"] = "200"
         return JsonResponse(self.result)
 
-    @check_login
     def post(self, request):
         """
         添加event
@@ -177,7 +194,6 @@ class ResourceApi(View):
         self.result["code"] = "200"
         return JsonResponse(self.result)
 
-    @check_login
     def put(self, request):
         """
         修改event
@@ -185,12 +201,28 @@ class ResourceApi(View):
         :return: json数据
         """
         event_id = request.POST.get('event_id')
+        modify_title = request.POST.get('modify_title')
+        modify_special = request.POST.get('modify_special')
+        modify_start = request.POST.get('modify_start')
+        modify_end = request.POST.get('modify_end')
+        modify_color = request.POST.get('modify_color')
+        modify_url = request.POST.get('modify_url')
+        modify_details = request.POST.get('modify_details')
 
+        event_modify = DailyRoutine.objects.filter(id=event_id)
+        event_modify.title = modify_title
+        event_modify.event_special = modify_special
+        event_modify.time_start = modify_start
+        event_modify.time_end = modify_end
+        event_modify.event_color = modify_color
+        event_modify.event_url = modify_url
+        event_modify.event_details = modify_details
+        event_modify.save()
         method = request.method
         self.result["data"].append(method)
+        self.result["code"] = "200"
         return JsonResponse(self.result)
 
-    @check_login
     def delete(self, request):
         """
         删除event
@@ -198,5 +230,34 @@ class ResourceApi(View):
         :return: json数据
         """
         method = request.method
+        event_id = request.POST.get('event_id')
+        event_delete = DailyRoutine.objects.filter(event_id)
+        event_delete.delete()
         self.result["data"].append(method)
+        self.result["code"] = "200"
         return JsonResponse(self.result)
+
+def test(request):
+    username = '1'
+    user = Users.objects.filter(username=username).first()
+    event_title = '1111111111111111111111'
+    event_special = '1'
+    time_start = datetime.datetime.now().strftime('%Y-%m-%d')
+    time_end = datetime.datetime.now().strftime('%Y-%m-%d')
+    event_color = '#ff6700'
+    event_url = 'www.baidu.com'
+    event_imgs = '/static/myresource/img/1.jpeg'
+    event_details = '11111111111111111111111111111111111111111111'
+
+    event_new = DailyRoutine()
+    event_new.title = event_title
+    event_new.event_special = event_special
+    event_new.time_start = time_start
+    event_new.time_end = time_end
+    event_new.event_color = event_color
+    event_new.event_url = event_url
+    event_new.event_imgs = event_imgs
+    event_new.event_details = event_details
+    event_new.user_id = user
+    event_new.save()
+    return HttpResponse('successful!')

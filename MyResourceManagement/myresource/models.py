@@ -7,7 +7,7 @@ class Users(models.Model):
     username = models.CharField(max_length=16, blank=False, null=False)
     password = models.CharField(max_length=32, blank=False, null=False)
     email = models.EmailField()
-    created_time = models.DateTimeField(auto_created=True)
+    created_time = models.DateTimeField(auto_now_add=True)
 
 
 class PersonalProfile(models.Model):
@@ -25,7 +25,7 @@ class DailyRoutine(models.Model):
     time_end = models.DateTimeField()
     event_color = models.CharField(max_length=16)
     event_editable = models.CharField(max_length=16, default="true")
-    event_url = models.CharField(max_length=512)
-    event_details = RichTextField()
+    event_url = models.CharField(max_length=512, blank=True, null=True)
+    event_details = RichTextField(blank=True, null=True)
     event_imgs = models.ImageField(upload_to='myresource/upload/daily_pic/')
     user_id = models.ForeignKey(to=Users, on_delete=models.CASCADE)

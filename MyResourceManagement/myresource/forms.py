@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 
 def nameValidator(name):
-    pool = ['***']
+    pool = ['sb']
     for i in pool:
         if i in str(name):
             raise ValidationError

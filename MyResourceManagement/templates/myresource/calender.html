@@ -20,74 +20,77 @@
     </style>
 {% endblock %}
 {% block main %}
-    <div id='calendar'></div>
-    <div class="container">
-        <!-- 模态框（Modal） -->
-        <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog"
-             aria-labelledby="myModalLabel"
-             aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content ">
-                    <div class="modal-header">
-                        <div class="card-title modal-title" id="myModalLabel">
-                            添加日程
+    <div id="main_content">
+        <div id='calendar'></div>
+        <div class="container">
+            <!-- 模态框（Modal） -->
+            <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog"
+                 aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content ">
+                        <div class="modal-header">
+                            <div class="card-title modal-title" id="myModalLabel">
+                                添加日程
+                            </div>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                                &times;
+                            </button>
                         </div>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                            &times;
-                        </button>
-                    </div>
-                    <form>
-                        <div class="modal-body">
-                            <div class="form-group ">
-                                <label for="event_title">主题</label><input type="text" class="form-control"
-                                                                          id="event_title" placeholder="主题"
-                                                                          name="event_title">
-                            </div>
-                            <div class="form-group">
-                                <label for="event_special">是否为重要事项</label>
-                                <select class="form-control" id="event_special" name="event_special">
-                                    <option value="0" selected>否</option>
-                                    <option value="1">是</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="time_start">起始时间</label>
-                                <input type="datetime-local" class="form-control" id="time_start" placeholder="起始时间"
-                                       name="time_start">
-                            </div>
-                            <div class="form-group">
-                                <label for="time_end">终止时间</label>
-                                <input type="datetime-local" class="form-control" id="time_end" placeholder="终止时间"
-                                       name="time_end">
-                            </div>
-                            <div class="form-group">
-                                <label for="event_color">颜色</label>
-                                <input type="color" class="form-control-static form" id="event_color" placeholder="颜色"
-                                       value="#716ACA" name="event_color">
-                            </div>
-                            <div class="form-group">
-                                <label for="event_url">链接</label>
-                                <input type="url" class="form-control" id="event_url" placeholder="链接"
-                                       name="event_url">
-                            </div>
-                            <div class="form-group">
-                                <label for="event_imgs">图片</label>
-                                <input type="file" class="form-control-file" id="event_imgs" name="event_imgs">
-                            </div>
-                            <div class="form-group">
-                                <label for="event_details">详情</label>
-                                <textarea class="form-control" id="event_details" rows="5" placeholder="详情"
-                                          name="event_details">
+                        <form>
+                            <div class="modal-body">
+                                <div class="form-group ">
+                                    <label for="event_title">主题</label><input type="text" class="form-control"
+                                                                              id="event_title" placeholder="主题"
+                                                                              name="event_title">
+                                </div>
+                                <div class="form-group">
+                                    <label for="event_special">是否为重要事项</label>
+                                    <select class="form-control" id="event_special" name="event_special">
+                                        <option value="0" selected>否</option>
+                                        <option value="1">是</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="time_start">起始时间</label>
+                                    <input type="datetime-local" class="form-control" id="time_start" placeholder="起始时间"
+                                           name="time_start">
+                                </div>
+                                <div class="form-group">
+                                    <label for="time_end">终止时间</label>
+                                    <input type="datetime-local" class="form-control" id="time_end" placeholder="终止时间"
+                                           name="time_end">
+                                </div>
+                                <div class="form-group">
+                                    <label for="event_color">颜色</label>
+                                    <input type="color" class="form-control-static form" id="event_color"
+                                           placeholder="颜色"
+                                           value="#716ACA" name="event_color">
+                                </div>
+                                <div class="form-group">
+                                    <label for="event_url">链接</label>
+                                    <input type="url" class="form-control" id="event_url" placeholder="链接"
+                                           name="event_url">
+                                </div>
+                                <div class="form-group">
+                                    <label for="event_imgs">图片</label>
+                                    <input type="file" class="form-control-file" id="event_imgs" name="event_imgs">
+                                </div>
+                                <div class="form-group">
+                                    <label for="event_details">详情</label>
+                                    <textarea class="form-control" id="event_details" rows="5" placeholder="详情"
+                                              name="event_details">
 										</textarea>
+                                </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <input type="button" class="btn btn-success" value="提交">
-                            <input type="button" class="btn btn-danger" data-dismiss="modal" value="关闭">
-                        </div>
-                    </form>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal -->
+                            <div class="modal-footer">
+                                <input type="button" class="btn btn-success" value="提交">
+                                <input type="button" class="btn btn-danger" data-dismiss="modal" value="关闭">
+                            </div>
+                        </form>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
         </div>
     </div>
 
@@ -153,62 +156,35 @@
                 selectMirror: true,
                 eventLimit: true, // allow "more" link when too many events
                 navLinks: true, // can click day/week names to navigate views
-                events: [{
-                    id: 1,
-                    title: '这是一个all-day数据',
-                    allDay: true,
-                    start: '2020-02-03'
-                },
+                eventSources: [
                     {
-                        id: 2,
-                        title: '开始时间为12PM',
-                        start: '2020-02-03 12:00',
-                        editable: true,
+                        events: function (tart, end, timezone) {
+                            $.ajax({
+                                url: "/backend/Api/",
+                                type: 'get',
+                                success: function (data) {
+                                    var events = data.events;
+                                    console.log(events);
+                                    callback(events);
+                                }
+                            });
+                        },
+                        editable: false,
+                        failure: function () {
+                            alert('there was an error while fetching events!');
+                        },
                     },
+                    //自定义的静态event数据
                     {
-                        id: 3,
-                        title: '给一点颜色',
-                        start: '2020-02-03',
-                        color: 'red',
-                        editable: true,
-                    },
-                    {
-                        id: 4,
-                        title: '使用className:done',
-                        start: '2020-02-02 09:00',
-                        end: '2020-02-03 18:00',
-                        color: '#ff2118',
-                        className: 'done',
-                        editable: true,
-                    },
-                    {
-                        id: 5,
-                        title: '使用className:doing',
-                        start: '2020-02-03 09:00',
-                        end: '2020-02-04 18:00',
-                        color: 'green',
-                        className: 'doing',
-                        editable: true,
-                    },
-                    {
-                        id: 6,
-                        title: '使用URL和字体颜色',
-                        start: '2020-02-03',
-                        color: 'pink',
-                        url: 'http://flovel.xyz',
-                        className: 'doing',
-                        textColor: 'black',
-                        editable: true,
-                    },
-                    {
-                        id: 7,
-                        title: '使用backgroundColor和borderColor',
-                        start: '2020-02-03 09:00',
-                        end: '2020-02-03 18:00',
-                        backgroundColor: 'gray',
-                        borderColor: 'red',
-                        className: 'done',
-                        editable: true,
+                        events: [
+                            {
+                                title: 'other resource',
+                                start: '2020-2-6',
+                                end: '2020-2-7',
+                                className: 'text-primary bg-white'
+                            }
+                        ],
+                        editable: true
                     }
                 ],
                 dateClick: function (info) {

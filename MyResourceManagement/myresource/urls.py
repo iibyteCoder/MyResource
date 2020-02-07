@@ -12,5 +12,6 @@ urlpatterns = [
     path('base/', base),
     path('calender/', calender),
     # path('Api/', csrf_exempt(ResourceApi.as_view())),
-    path('Api/', ResourceApi.as_view())
+    path('Api/', ResourceApi.as_view()),
+    path('test/',test)
 ]

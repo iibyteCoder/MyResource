@@ -33,7 +33,7 @@
             <div class="form-group has-error has-feedback " id="nousername1">
                 <label for="errorInput">账号或密码有误</label>
             </div>
-            <form action="" method="post">
+            <form action="http://127.0.0.1:8000/backend/login/" method="post">
                 {% csrf_token %}
                 <div class="form-group form-floating-label">
                     <input id="fullname" name="fullname" type="text" class="form-control input-border-bottom" required>
@@ -231,12 +231,14 @@
                 $('#nousername2').hide();
                 var username = $('#username').val();
                 var passwordsignin = $('#passwordsignin').val();
+                var confirmpassword = $('#confirmpassword').val();
                 var email = $("#email").val();
                 var formdata = new FormData();
                 var url = "/backend/registry/";
                 formdata.append("username", username);
                 formdata.append("email", email);
                 formdata.append("password", passwordsignin);
+                formdata.append("confirmpassword",confirmpassword);
                 formdata.append('csrfmiddlewaretoken', '{{ csrf_token }}');
                 $.ajax(
                     {
