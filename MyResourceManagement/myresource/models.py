@@ -20,7 +20,7 @@ class PersonalProfile(models.Model):
 
 class DailyRoutine(models.Model):
     title = models.CharField(max_length=64, blank=True, null=True)
-    event_special = models.CharField(max_length=16)
+    event_special = models.CharField(max_length=16, default='no')
     time_start = models.DateTimeField()
     time_end = models.DateTimeField()
     event_color = models.CharField(max_length=16)

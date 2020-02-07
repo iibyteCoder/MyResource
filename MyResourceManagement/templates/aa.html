@@ -345,60 +345,417 @@
 <body>
 </html>
 events: [{
-                    id: 1,
-                    title: '这是一个all-day数据',
-                    allDay: true,
-                    start: '2020-02-03'
+id: 1,
+title: '这是一个all-day数据',
+allDay: true,
+start: '2020-02-03'
+},
+{
+id: 2,
+title: '开始时间为12PM',
+start: '2020-02-03 12:00',
+editable: true,
+},
+{
+id: 3,
+title: '给一点颜色',
+start: '2020-02-03',
+color: 'red',
+editable: true,
+},
+{
+id: 4,
+title: '使用className:done',
+start: '2020-02-02 09:00',
+end: '2020-02-03 18:00',
+color: '#ff2118',
+className: 'done',
+editable: true,
+},
+{
+id: 5,
+title: '使用className:doing',
+start: '2020-02-03 09:00',
+end: '2020-02-04 18:00',
+color: 'green',
+className: 'doing',
+editable: true,
+},
+{
+id: 6,
+title: '使用URL和字体颜色',
+start: '2020-02-03',
+color: 'pink',
+url: 'http://flovel.xyz',
+className: 'doing',
+textColor: 'black',
+editable: true,
+},
+{
+id: 7,
+title: '使用backgroundColor和borderColor',
+start: '2020-02-03 09:00',
+end: '2020-02-03 18:00',
+backgroundColor: 'gray',
+borderColor: 'red',
+className: 'done',
+editable: true,
+}
+]
+<script>
+    $('#calendar').fullCalendar({
+        header: {
+            right: 'prev,next today',
+            center: 'title',
+            left: 'month,agendaWeek,agendaDay'
+        },
+        theme: true,
+        editable: true,
+        allDaySlot: false,
+        eventLimit: true,
+        events: function (start, end, callback) {
+
+            var now = new Date();
+            //初始化参数
+            var name = "songyuan";
+            var title = "";
+            var content = "";
+            var noteType = "";
+            //alert("进入到查询日程的方法里.内部")
+            $.ajax({
+                type: "post",
+                url: "${ctx}/memo/getNotepad",
+                success: function (data) {
+                    var events = [];
+                    //alert("进入到events内部")
+                    $.each(data, function (key, value) {
+                        var noteType = "";
+                        if (value.noteType == 1) {
+                            noteType = "工作";
+                        } else if (value.noteType == 2) {
+                            noteType = "生活";
+                        } else if (value.noteType == 3) {
+                            noteType = "家庭";
+                        } else if (value.noteType == 4) {
+                            noteType = "私密";
+                        } else {
+                            noteType = "其他";
+                        }
+                        events.push({
+                            sid: 2,
+                            uid: 3,
+                            title: '记事簿',
+                            start: value.starTime,
+                            end: value.endTime,
+                            fullname: value.name,
+                            confname: noteType,
+                            confshortname: 'M1',
+                            confcolor: '#ff3f3f',
+                            confid: value.noteType,
+                            allDay: false,
+                            topic: value.title,
+                            description: value.content,
+                            id: value.id,
+                        });
+                    });
+                    callback(events);
+                }
+            });
+        },
+        dayClick: function (date, allDay, jsEvent, view) {
+            var selectdate = $.fullCalendar.formatDate(date, "yyyy-MM-dd");
+
+            $("#reservebox").dialog({
+                autoOpen: false,
+                height: 450,
+                width: 400,
+                title: '建立记事簿 ' + selectdate,
+                modal: true,
+                position: "center",
+                draggable: false,
+                beforeClose: function (event, ui) {
+                    $.validationEngine.closePrompt("#thingsType");
+                    $.validationEngine.closePrompt("#start");
+                    $.validationEngine.closePrompt("#end");
                 },
-                    {
-                        id: 2,
-                        title: '开始时间为12PM',
-                        start: '2020-02-03 12:00',
-                        editable: true,
+                buttons: {
+                    "取消": function () {
+                        $(this).dialog("close");
                     },
-                    {
-                        id: 3,
-                        title: '给一点颜色',
-                        start: '2020-02-03',
-                        color: 'red',
-                        editable: true,
-                    },
-                    {
-                        id: 4,
-                        title: '使用className:done',
-                        start: '2020-02-02 09:00',
-                        end: '2020-02-03 18:00',
-                        color: '#ff2118',
-                        className: 'done',
-                        editable: true,
-                    },
-                    {
-                        id: 5,
-                        title: '使用className:doing',
-                        start: '2020-02-03 09:00',
-                        end: '2020-02-04 18:00',
-                        color: 'green',
-                        className: 'doing',
-                        editable: true,
-                    },
-                    {
-                        id: 6,
-                        title: '使用URL和字体颜色',
-                        start: '2020-02-03',
-                        color: 'pink',
-                        url: 'http://flovel.xyz',
-                        className: 'doing',
-                        textColor: 'black',
-                        editable: true,
-                    },
-                    {
-                        id: 7,
-                        title: '使用backgroundColor和borderColor',
-                        start: '2020-02-03 09:00',
-                        end: '2020-02-03 18:00',
-                        backgroundColor: 'gray',
-                        borderColor: 'red',
-                        className: 'done',
-                        editable: true,
+                    "添加": function () {
+                        // alert("这就是点击了reserve的方法")
+                        /* if($("#reserveformID").validationEngine({returnIsValid:true})){*/
+                        var startdatestr = $("#start").val();
+                        var enddatestr = $("#end").val();
+                        var confid = $("#thingsType").val();
+                        var repweeks = $("#repweeks").val();
+                        if (repweeks == null) {
+                            repweeks = 0;
+                        }
+                        var startdate = $.fullCalendar.parseDate(selectdate + "T" + startdatestr);
+                        var enddate = $.fullCalendar.parseDate(selectdate + "T" + enddatestr);
+                        var schdata = {startdate: startdate, enddate: enddate, confid: confid, repweeks: repweeks};
+                        var title = $("#title").val();
+                        var content = $("#details").val();
+                        /*}*/
+                        //alert("startdatestr=="+startdatestr+"enddatestr=="+enddatestr+"enddatestr=="+enddatestr+"confid=="+confid+"repweeks=="+repweeks+"startdate=="+startdate+"enddate=="+enddate+"schdata=="+schdata)
+                        $.ajax({
+                            type: "post",
+                            data: {
+                                title: title,
+                                content: content,
+                                starTime: selectdate + " " + startdatestr + ":00",
+                                endTime: selectdate + " " + enddatestr + ":00",
+                                repeatWeeks: repweeks,
+                                thingsType: confid
+                            },
+                            url: "${ctx}/memo/addNotepad",
+                            success: function (data) {
+                                //alert("添加数据完成"+data)
+                                //closewait();
+                                window.location.reload();
+                                //若执行成功的话，则隐藏进度条提示
+                                if (data != null && data != 'undefined'
+                                    && data == 1) {
+                                    layer.msg('记事本添加成功!', {icon: 6, time: 1000});
+                                    parent.flushParent();
+                                    layer_close();
+                                    window.location.reload();
+                                } else if (data == -1) {
+                                    layer.msg('记事本名称已经存在!', {icon: 5, time: 1000});
+                                } else if (data == 0) {
+                                    layer.msg('很抱歉！添加失败!', {icon: 5, time: 1000});
+                                } else {
+                                    layer.msg('系统异常！请与系统管理员联系!', {icon: 5, time: 1000});
+                                }
+                            }
+                        });
                     }
-                ]
+                }
+            });
+            $("#reservebox").dialog("open");
+            return false;
+        },
+        timeFormat: 'HH:mm{ - HH:mm}',
+        eventClick: function (event) {
+            var fstart = $.fullCalendar.formatDate(event.start, "yyyy/MM/dd HH:mm");
+            var fend = $.fullCalendar.formatDate(event.end, "HH:mm");
+            var schdata = {sid: event.sid, deleted: 1, uid: event.uid};
+
+            $("#reserveinfo").dialog({
+                autoOpen: false,
+                height: 280,
+                width: 400,
+                modal: true,
+                position: "center",
+                draggable: false,
+                buttons: {
+                    "close": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+
+            if (1 == 1 || 2 == schdata.uid) {
+                $("#reserveinfo").dialog("option", "buttons", {
+                    "取消": function () {
+                        $(this).dialog("close");
+                    },
+
+                    "取消日程": function () {
+                        // var answer = confirm("确定取消日程吗?");
+                        /*  layer.confirm("确定取消日程吗?",{
+                              btn: ['确定', '取消'] //按钮
+                          },function () {
+                              alert("进入到了confirm里面")
+                          });*/
+                        /*if(answer){*/
+                        // alert("eventId===="+event.id)
+                        $.ajax({
+                            type: "post",
+                            data: {
+                                id: event.id
+                            },
+                            url: "${ctx}/memo/cancleNotepad",
+                            success: function (data) {
+                                window.location.reload();
+                                //若执行成功的话，则隐藏进度条提示
+                                if (data != null && data != 'undefined'
+                                    && data == 1) {
+                                    layer.msg('记事本取消成功!', {icon: 6, time: 1000});
+                                    parent.flushParent();
+                                    layer_close();
+                                    window.location.reload();
+                                } else if (data == -1) {
+                                    layer.msg('记事本名称已经存在!', {icon: 5, time: 1000});
+                                } else if (data == 0) {
+                                    layer.msg('很抱歉！添加失败!', {icon: 5, time: 1000});
+                                } else {
+                                    layer.msg('系统异常！请与系统管理员联系!', {icon: 5, time: 1000});
+                                }
+                            }
+                        });
+
+                        /*}*/
+                    }
+                });
+            }
+
+            var showtopic = '';
+
+            if (event.topic.length > 15) {
+                showtopic = event.topic.substring(0, 15) + '...';
+            } else {
+                showtopic = event.topic;
+            }
+
+
+            $("#revdesc").html('<div style="font-weight:bold;color:#5383c2;border-bottom: 1px dotted #5383c2; padding: 3px 0px 3px;">' + showtopic + "</div>" + '<div style="padding: 10px 0px 3px">' + '<div style="width:128px;float:left;color: #0a68b4">' + '<b>' + '事件类型:' + '</b>' + '　' + event.confname + '<div style="background:#A4C3E3; text-align:center; padding:5px;color:#1d5987;font-weight:bold;font-size:9px"><span style="background:' + event.confcolor + ';width:14px;height:14px;color:#E3E3E3;font-size:10px;position:relative;left:0;top:0;">' + event.confshortname + '</span>&nbsp;' + event.confname + '记事' + ' 由 ' + event.fullname + '　创建' + '</div></div><div style="float:right;width:220px; padding:0px ; margin:0px;color: #0a68b4">' + '<b>' + '内容:' + '</b>' + event.description + '</div><div style="clear:both"></div></div>');
+
+            $("#reserveinfo").dialog(
+                {title: fstart + "-" + fend + " " + showtopic}
+            );
+
+            $("#reserveinfo").dialog("open");
+            return false;
+        },
+        loading: function (bool) {
+            if (bool) $('#loading').show();
+            else $('#loading').hide();
+        },
+        eventMouseover: function (calEvent, jsEvent, view) {
+            var fstart = $.fullCalendar.formatDate(calEvent.start, "yyyy/MM/dd HH:mm");
+            var fend = $.fullCalendar.formatDate(calEvent.end, "HH:mm");
+            $(this).attr('title', fstart + " - " + fend + " " + calEvent.topic + " : " + calEvent.description);
+            $(this).css('font-weight', 'normal');
+            $(this).tooltip({
+                effect: 'toggle',
+                cancelDefault: true
+            });
+        },
+        eventMouseout: function (calEvent, jsEvent, view) {
+            $(this).css('font-weight', 'normal');
+        },
+        eventRender: function (event, element) {
+            var fstart = $.fullCalendar.formatDate(event.start, "HH:mm");
+            var fend = $.fullCalendar.formatDate(event.end, "HH:mm");
+            // Bug in IE8
+            //element.html('<a href=#>' + fstart + "-" +  fend + '<div style=color:#E5E5E5>' +  event.title + "</div></a>");
+        },
+        eventAfterRender: function (event, element, view) {
+            /*  alert("event===="+event.toString());
+              alert("element===="+element.toString());
+              alert("view===="+view.name);*/
+            var fstart = $.fullCalendar.formatDate(event.start, "HH:mm");
+            var fend = $.fullCalendar.formatDate(event.end, "HH:mm");
+            //element.html('<a href=#><div>Time: ' + fstart + "-" +  fend + '</div><div>Room:' + event.confname + '</div><div style=color:#E5E5E5>Host:' +  event.fullname + "</div></a>");
+
+
+            var confbg = '';
+            if (event.confid == 1) {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            } else if (event.confid == 2) {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            } else if (event.confid == 3) {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            } else if (event.confid == 4) {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            } else if (event.confid == 5) {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            } else if (event.confid == 6) {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            } else {
+                confbg = confbg + '<span class="fc-event-bg"></span>';
+            }
+
+            var titlebg = '<span class="fc-event-conf" style="background:' + event.confcolor + '">' + event.confshortname + '</span>';
+
+            if (event.repweeks > 0) {
+                titlebg = titlebg + '<span class="fc-event-conf" style="background:#fff;top:0;right:15;color:#3974BC;font-weight:bold">R</span>';
+            }
+
+            if (view.name == "month") {
+
+                var evtcontent = '<div class="fc-event-vert"><a>';
+                evtcontent = evtcontent + confbg;
+                evtcontent = evtcontent + '<span class="fc-event-titlebg" style="color: whitesmoke">' + fstart + " - " + fend + titlebg + '</span>';
+                evtcontent = evtcontent + '<span style="color: rebeccapurple">事件类型: ' + event.confname + '</span>';
+                evtcontent = evtcontent + '<span style="color: #0a68b4">人员: ' + event.fullname + '</span>';
+                evtcontent = evtcontent + '<span style="color: #0A4798">标题: ' + event.topic + '</span>';
+                evtcontent = evtcontent + '</a><div class="ui-resizable-handle ui-resizable-e"></div></div>';
+                element.html(evtcontent);
+            } else if (view.name == "agendaWeek") {
+                var evtcontent = '';
+                evtcontent = evtcontent + confbg;
+                evtcontent = evtcontent + '<span class="fc-event-time">' + fstart + "-" + fend + titlebg + '</span>';
+                evtcontent = evtcontent + '<span>' + event.confname + ' 由 ' + event.fullname + ' 　创建 ' + '</span>';
+                //evtcontent = evtcontent + '<span>' +  event.fullname + '</span>';
+                evtcontent = evtcontent + '<span class="ui-icon ui-icon-arrowthick-2-n-s"><div class="ui-resizable-handle ui-resizable-s"></div></span>';
+                element.html(evtcontent);
+            } else if (view.name == "agendaDay") {
+                var evtcontent = '';
+                evtcontent = evtcontent + confbg;
+                evtcontent = evtcontent + '<span class="fc-event-time">' + fstart + " - " + fend + titlebg + '</span>';
+                evtcontent = evtcontent + '<span>事件类型: ' + event.confname + '</span>';
+                evtcontent = evtcontent + '<span>人员: ' + event.fullname + '</span>';
+                evtcontent = evtcontent + '<span>Topic: ' + event.topic + '</span>';
+                evtcontent = evtcontent + '<span class="ui-icon ui-icon-arrow-2-n-s"><div class="ui-resizable-handle ui-resizable-s"></div></span>';
+                element.html(evtcontent);
+            }
+        },
+        eventDragStart: function (event, jsEvent, ui, view) {
+            ui.helper.draggable("option", "revert", true);
+        },
+        eventDragStop: function (event, jsEvent, ui, view) {
+        },
+        eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc, jsEvent, ui, view) {
+            console.log("进行时间拖拽的时候触发的事件");
+            console.log("event.start" + event.start)
+            console.log("event.end" + event.end)
+            console.log("event.id" + event.id)
+            //拖拽的时候进行时间的改变
+            var start = $.fullCalendar.formatDate(event.start, "yyyy-MM-dd HH:mm:ss");
+            var end = $.fullCalendar.formatDate(event.end, "yyyy-MM-dd HH:mm:ss");
+            $.ajax({
+                type: "post",
+                data: {
+                    id: event.id,
+                    start: start,
+                    end: end
+                },
+                url: "${ctx}/memo/updateNotepad",
+                success: function (data) {
+                    if (data == 1) {
+                        console.log("拖拽事件成功")
+                    } else {
+                        console.log("拖拽事件失败")
+                    }
+                }
+            });
+
+            if (1 == 1 || 2 == event.uid) {
+                var schdata = {startdate: event.start, enddate: event.end, confid: event.confid, sid: event.sid};
+            } else {
+                revertFunc();
+            }
+
+        },
+        eventResizeStart: function (event, jsEvent, ui, view) {
+
+            //alert('resizing');
+
+        },
+        eventResize: function (event, dayDelta, minuteDelta, revertFunc) {
+
+            if (1 == 1 || 2 == event.uid) {
+                var schdata = {startdate: event.start, enddate: event.end, confid: event.confid, sid: event.sid};
+
+            } else {
+                revertFunc();
+            }
+
+        }
+
+    });
+
+</script>

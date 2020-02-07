@@ -241,7 +241,7 @@ def test(request):
     username = '1'
     user = Users.objects.filter(username=username).first()
     event_title = '1111111111111111111111'
-    event_special = '1'
+    event_special = 'no'
     time_start = datetime.datetime.now().strftime('%Y-%m-%d')
     time_end = datetime.datetime.now().strftime('%Y-%m-%d')
     event_color = '#ff6700'

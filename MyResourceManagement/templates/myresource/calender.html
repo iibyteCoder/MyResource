@@ -116,6 +116,11 @@
         var basePath = "${pageContext.request.contextPath}";
     </script>
     <script>
+        $.ajaxSetup({
+            data: {"csrfmiddlewaretoken": '{{ csrf_token }}'}
+        })
+    </script>
+    <script>
         //获取当前时间，格式YYYY-MM-DD
         function getNowFormatDate(date) {
             if (date === undefined) {
@@ -156,37 +161,36 @@
                 selectMirror: true,
                 eventLimit: true, // allow "more" link when too many events
                 navLinks: true, // can click day/week names to navigate views
-                eventSources: [
-                    {
-                        events: function (tart, end, timezone) {
-                            $.ajax({
-                                url: "/backend/Api/",
-                                type: 'get',
-                                success: function (data) {
-                                    var events = data.events;
-                                    console.log(events);
-                                    callback(events);
-                                }
+                events: function (start, end, callback) {
+                    //alert("进入到查询日程的方法里.内部")
+                    $.ajax({
+                        type: "get",
+                        url: "/backend/Api/",
+                        success: function (data) {
+                            console.log(data);
+                            var events = [];
+                            //alert("进入到events内部")
+                            $.each(data["data"], function (key, value) {
+                                events.push({
+                                    title: value.title,
+                                    start: value.start,
+                                    end: value.end,
+                                    backgroundColor: value.backgroundColor,
+                                    allDay: false,
+                                    description: value.event_details,
+                                    id: value.id,
+                                    url:value.uid,
+                                    editable: value.editable
+                                });
                             });
-                        },
-                        editable: false,
-                        failure: function () {
-                            alert('there was an error while fetching events!');
-                        },
-                    },
-                    //自定义的静态event数据
-                    {
-                        events: [
-                            {
-                                title: 'other resource',
-                                start: '2020-2-6',
-                                end: '2020-2-7',
-                                className: 'text-primary bg-white'
-                            }
-                        ],
-                        editable: true
-                    }
-                ],
+                            console.log(events);
+                            callback(events);
+                        }, error: function (error) {
+                            console.log(error);
+                            console.log("大失败！")
+                        }
+                    });
+                },
                 dateClick: function (info) {
                     {#console.log(info.date.toISOString());#}
                     {#console.log(info.dateStr);#}
